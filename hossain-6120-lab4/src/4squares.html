@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<title>Rotating Square</title>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+uniform float theta;
+uniform float shear_x;
+uniform float shear_y;
+uniform float scale;
+uniform float trans_x;
+uniform float trans_y;
+
+attribute vec4 sColor;
+varying vec4 squareColor;
+
+void main()
+{
+    float s = sin( theta );
+    float c = cos( theta );
+	// Rotation Matrix
+	mat4 rotate = mat4( c, -s, 0.0, 0.0,
+		    s,  c, 0.0, 0.0,
+		    0.0,  0.0, 1.0, 0.0,
+		    0.0,  0.0, 0.0, 1.0 );
+			
+	// Translation Matrix
+	mat4 translate = mat4(1, 0.0, 0.0, 0.0,
+						  0.0, 1, 0.0, 0.0,
+						  0.0, 0.0, 1, 0.0,
+						  trans_x, trans_y, 0.0, 1);
+						  
+	// Inverse Translation Matrix
+	mat4 invtranslate = mat4(1, 0.0, 0.0, 0,
+						  0.0, 1, 0.0, 0,
+						  0.0, 0.0, 1, 0.0,
+						  -trans_x, -trans_y, 0.0, 1);
+						  
+	// Transformation Matrix
+	mat4 transform = mat4( scale, shear_y, 0.0, 0.0,
+		    shear_x,  scale, 0.0, 0.0,
+		    0.0,  0.0, 1.0, 0.0,
+		    0.0,  0.0, 0.0, 1.0 );
+			
+	squareColor = sColor;
+	// Translate to the origin, apply transformation and rotation then translate to the previous position
+	gl_Position = invtranslate * rotate * transform * translate * vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 squareColor;
+void main()
+{
+    gl_FragColor = squareColor;
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="4squares.js"></script>
+</head>   
+
+<body>
+<button id="Direction">Change Rotation Direction</button>
+<button id="Rotattion">Start Rotation</button>
+
+<select id="Controls" size="3">
+    <option value="0">Toggle Rotation Direction</option>
+    <option value="1">Spin Faster</option>
+    <option value="2">Spin Slower</option>
+</select>
+
+<canvas id="gl-canvas" width="512" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+</body>
+</html>

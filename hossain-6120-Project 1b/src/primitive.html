@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<title>Draw Primitives</title>
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute vec4 vPosition;
+attribute vec4 vColor;
+
+varying vec4 fColor;
+
+void
+main()
+{
+	gl_Position = vPosition;
+    fColor = vColor;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+void
+main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="primitive.js"></script>
+
+<body>
+<div style="float:left">
+<canvas id="gl-canvas" width="512" height="512">>
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+</div>
+<div style="float:right">
+<br>
+  <label style="width:200px">Device X:</label><input type="number" id="device_x" value=""> 
+  <label style="width:150px">Device Y:</label><input type="number" id="device_y" value="">
+  <br>
+  <label style="width:200px">NDC X:</label><input type="number" id="ndc_x" value=""> 
+  <label style="width:150px">NDC Y:</label><input type="number" id="ndc_y" value="">
+  <br>
+  <label style="width:200px">World X:</label><input type="number" id="world_x" value=""> 
+  <label style="width:150px">World Y:</label><input type="number" id="world_y" value="">
+  <br>
+<label>Primitives</label>
+<select id="Controls">
+    <option value="0">Lines(8)</option>
+    <option value="1">Triangle(9)</option>
+</select>
+<label>Select Color</label>
+<select id="Colors">
+    <option value=0>Red(0)</option>
+    <option value=1>Yellow(1)</option>
+    <option value=2>Green(2)</option>
+    <option value=3>Blue(3)</option>
+    <option value=4>Magenta(4)</option>
+    <option value=5>Cyan(5)</option>
+    <option value=6>Orange(6)</option>
+    <option value=7>Black(7)</option>
+</select>
+<br>
+<br>
+<button id="draw_primitives" style="width:150px; height:40px">Draw Primitives</button>
+<br>
+<br>
+<button id="pick_primitives" style="width:150px; height:40px">Pick a Primitive</button>
+<br>
+<br>
+<button id="rotate_left"style="width:150px; height:40px">Rotate Left</button>
+<button id="rotate_right"style="width:150px; height:40px">Rotate Right</button>
+<br>
+<br>
+Scale 1 <input id="slider" type="range"
+ min="1" max="5" step="1" value="1" />
+ 5
+<br>
+<br>
+</div>
+</body>
+</html>

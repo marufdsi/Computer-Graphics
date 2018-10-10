@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<title>Draw Primitives</title>
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+
+void
+main()
+{
+	
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+void
+main()
+{
+    
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="coordinates.js"></script>
+
+<body>
+
+<div id="canvas" style="float:left">
+	<canvas id="gl-canvas" width="512" height="512">
+	Oops ... your browser doesn't support the HTML5 canvas element
+	</canvas>
+</div>
+<div id="information" style="float:right">
+	<div>
+	<h1>Specify World Coordinate</h1>
+	<label><b>X Min</b></label> <input type="number" id="x_min" value="">
+	<label><b>X Max</b></label> <input type="number" id="x_max" value="">
+	<br>
+	<label><b>Y Min</b></label> <input type="number" id="y_min" value="">
+	<label><b>Y Max</b></label> <input type="number" id="y_max" value="">
+	<br>
+    <button id="btn_add_world_coordinate">Add World Coordinate</button>
+	</div>
+	<div>
+	<br>
+	<h2>Coordinates in Different System</h1>
+	Mouse X:<input type="number" id="mouse_x" value=""> Mouse Y:<input type="number" id="mouse_y" value="">
+	<br>
+	World X:<input type="number" id="world_x" value=""> World Y:<input type="number" id="world_y" value="">
+	<br>
+	Device X:<input type="number" id="device_x" value=""> Device Y:<input type="number" id="device_y" value="">
+	<br>
+	NDC X:<input type="number" id="ndc_x" value=""> NDC Y:<input type="number" id="ndc_y" value="">
+	<br>
+	</div>
+</div>
+</body>
+</html>
