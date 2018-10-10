@@ -144,9 +144,9 @@ window.onload = function init() {
 					for(var j=0; j<selected_obj.length; ++j){
 						gl.bufferSubData(gl.ARRAY_BUFFER, 16*selected_obj[j][2], flatten(vec4(1.0, (j+1)/3, (j/2), 1.0)));
 					}
-					break;
 					
 					start_pos = deviceToWorld(event.clientX, event.clientY);
+					break;
 				}
 			}
 		}
@@ -263,40 +263,103 @@ window.onload = function init() {
 	};
 	document.getElementById("rotate_left" ).onclick = function(event) {
 
-		var s = Math.sin( -0.1 );
-		var c = Math.cos( -0.1 );
+		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		for(var i=1; i<selected_obj.length; ++i){
+			if(selected_obj[i][0][0]> max_x){
+				max_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][0]< min_x){
+				min_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][1]> max_y){
+				max_y = selected_obj[i][0][1];
+			}
+			if(selected_obj[i][0][1] < min_y){
+				min_y = selected_obj[i][0][1];
+			}
+		}	
+		var translate_x_by = (max_x + min_x)/2;	
+		var translate_y_by = (max_y + min_y)/2;
+
+		var s = Math.sin( -0.01 );
+		var c = Math.cos( -0.01 );
 
 		for(var i=0; i<selected_obj.length; ++i){
-			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
-			r_x = -s * result[0] + c * result[1];	
-			r_y = s * result[1] + c * result[0];
-			var w = NDCToWorld(r_x, r_y); 
-			selected_obj[i][0][0] = w[0];
-			selected_obj[i][0][1] = w[1];
-			
-			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(vec2(r_x,r_y)));
-		}
-	};
-	document.getElementById("rotate_right" ).onclick = function(event) {
-		var s = Math.sin( 0.1 );
-		var c = Math.cos( 0.1 );
-
-		for(var i=0; i<selected_obj.length; ++i){
-			r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
-			r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
-			selected_obj[i][0][0] = r_x;
-			selected_obj[i][0][1] = r_y;
+			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
+			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
+			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
+			selected_obj[i][0][0] = r_x + translate_x_by;
+			selected_obj[i][0][1] = r_y + translate_y_by;
 			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
 			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
 			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
 		}
 	};
-	document.getElementById("slider").onchange = function() {
-        scale = event.srcElement.value;
+	document.getElementById("rotate_right" ).onclick = function(event) {
+		
+		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		for(var i=1; i<selected_obj.length; ++i){
+			if(selected_obj[i][0][0]> max_x){
+				max_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][0]< min_x){
+				min_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][1]> max_y){
+				max_y = selected_obj[i][0][1];
+			}
+			if(selected_obj[i][0][1] < min_y){
+				min_y = selected_obj[i][0][1];
+			}
+		}	
+		var translate_x_by = (max_x + min_x)/2;	
+		var translate_y_by = (max_y + min_y)/2;
+		var s = Math.sin( 0.01 );
+		var c = Math.cos( 0.01 );
+
 		for(var i=0; i<selected_obj.length; ++i){
+			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
+			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
+			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
+			selected_obj[i][0][0] = r_x + translate_x_by;
+			selected_obj[i][0][1] = r_y + translate_y_by;
+			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
+			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
+		}
+	};
+	document.getElementById("btn_scale").onclick = function() {
+		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		for(var i=1; i<selected_obj.length; ++i){
+			if(selected_obj[i][0][0]> max_x){
+				max_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][0]< min_x){
+				min_x = selected_obj[i][0][0];
+			}
+			if(selected_obj[i][0][1]> max_y){
+				max_y = selected_obj[i][0][1];
+			}
+			if(selected_obj[i][0][1] < min_y){
+				min_y = selected_obj[i][0][1];
+			}
+		}	
+		var translate_x_by = (max_x + min_x)/2;	
+		var translate_y_by = (max_y + min_y)/2;
+
+        	var scale = document.getElementById("in_scale" ).value;
+		for(var i=0; i<selected_obj.length; ++i){
+			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
+			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+
 			selected_obj[i][0][0] *= scale;	
 			selected_obj[i][0][1] *= scale;	
+			
+			selected_obj[i][0][0] = selected_obj[i][0][0] + translate_x_by;
+			selected_obj[i][0][1] = selected_obj[i][0][1] + translate_y_by;
+
 			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
 			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
 			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
