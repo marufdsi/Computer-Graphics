@@ -1,33 +1,22 @@
 
 var canvas;
 var gl;
-
+// Track draw or pick option enable
 var draw = true;
 var pick = false;
+// Track selected object
 var object_selected = false;
 var selected_obj = 0;
+// Track object index
 var selected_obj_index = 0;
 var cBuffer;
 
 // Track mouse dragging
 var clicked = false;
 
-// Rotation
-var theta = 0.0;
-var thetaLoc;
-
-// Scalling factor
-var scale = 1.0;
-var scaleloc;
-
-// Translate to the X axis
-var trans_x = 0;
-var transloc_x;
-// Translate to the Y axis
-var trans_y = 0;
-var transloc_y;
-
+// Mouse dragging start position
 var start_pos;
+// Mouse dragging end position
 var end_pos;
 
 var line_vertext_count = 0;
@@ -53,7 +42,7 @@ var line_index = 0;
 // Track triangle vertices
 var triangle_index = 0;
 var color_index = 0;
-var primitive_type = 0;
+var primitive_type = 1;
 
 var vertices_list = [];
 
@@ -107,10 +96,6 @@ window.onload = function init() {
     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vColor);
     
-	thetaLoc = gl.getUniformLocation( program, "theta" );
-    scaleloc = gl.getUniformLocation( program, "scale" );
-    transloc_x = gl.getUniformLocation( program, "trans_x" );
-    transloc_y = gl.getUniformLocation( program, "trans_y" );
 	
 	// Track mouse down
 	canvas.addEventListener("mousedown", function(event){
@@ -120,31 +105,32 @@ window.onload = function init() {
 			var w = deviceToWorld(event.clientX, event.clientY);
 			// Calculate NDC Coordinates
 			var t = worldToNDC(w[0], w[1]);
-			
-			// Assign different coordinates value in the text box
-			document.getElementById("device_x" ).value = event.clientX;
-			document.getElementById("device_y" ).value = event.clientY;
-			document.getElementById("ndc_x" ).value = t[0];
-			document.getElementById("ndc_y" ).value = t[1];
-			document.getElementById("world_x" ).value = w[0];
-			document.getElementById("world_y" ).value = w[1];
 			found =false;
 			for ( var i = 0; i < vertices_list.length; ++i ) {
 				for ( var j = 0; j < vertices_list[i].length; ++j ) {
 					if(Math.round(vertices_list[i][j][0][0])+15 >= Math.round(w[0]) && Math.round(vertices_list[i][j][0][0])-15 <= Math.round(w[0]) &&  Math.round(vertices_list[i][j][0][1])+15 >= Math.round(w[1]) &&  Math.round(vertices_list[i][j][0][1])-15 <= Math.round(w[1])){
+						// Assign the original color of previously selected object
+						gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer);
+						for(var k=0; k<selected_obj.length; ++k){
+							gl.bufferSubData(gl.ARRAY_BUFFER, 16*selected_obj[k][2], flatten(vec4(selected_obj[k][3])));
+						}
+						// Empty the previous selected object info
 						selected_obj = [];
+						// Object picked
 						object_selected = true;
 						found = true;
 						break;
 					}
 				}
 				if(found){
+					// Add the selected object info in to the selected_obj variable
 					selected_obj = vertices_list[i];
+					// Assign new color that is why people can understand which object is selected
 					gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer);
 					for(var j=0; j<selected_obj.length; ++j){
-						gl.bufferSubData(gl.ARRAY_BUFFER, 16*selected_obj[j][2], flatten(vec4(1.0, (j+1)/3, (j/2), 1.0)));
+						gl.bufferSubData(gl.ARRAY_BUFFER, 16*selected_obj[j][2], flatten(vec4(1.0, (j+1)/2, (j/2), 0.9)));
 					}
-					
+					// Track the mouse's current and start position for handaling dragging
 					start_pos = deviceToWorld(event.clientX, event.clientY);
 					break;
 				}
@@ -158,17 +144,20 @@ window.onload = function init() {
 		// Check mouse down or up
 		if(clicked == false) return;
 		if(!draw && found){
-			// Calculate NDC Coordinates
+			// Track the mouse's current position
 			var end_pos = deviceToWorld(event.clientX, event.clientY);
-			trans_x = end_pos[0] - start_pos[0];
-			trans_y = end_pos[1] - start_pos[1];
+			// Calculate the distance of the mouse dragging
+			var trans_x = end_pos[0] - start_pos[0];
+			var trans_y = end_pos[1] - start_pos[1];
 			for(var i=0; i<selected_obj.length; ++i){
+				// Translate the object
 				selected_obj[i][0][0] += trans_x;	
 				selected_obj[i][0][1] += trans_y;	
 				var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
 				gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
 				gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
 			}
+			// Make the end position as the start position
 			start_pos = end_pos;
 		}
 	});
@@ -187,23 +176,19 @@ window.onload = function init() {
 			// Calculate NDC Coordinates
 			var t = worldToNDC(w[0], w[1]);
 			
-			// Assign different coordinates value in the text box
-			document.getElementById("device_x" ).value = event.clientX;
-			document.getElementById("device_y" ).value = event.clientY;
-			document.getElementById("ndc_x" ).value = t[0];
-			document.getElementById("ndc_y" ).value = t[1];
-			document.getElementById("world_x" ).value = w[0];
-			document.getElementById("world_y" ).value = w[1];
-			
 			switch(primitive_type){
+				// Line type primitives
 				case 0:
+					// Add vertex to the buffer sub data
 					gl.bufferSubData(gl.ARRAY_BUFFER, 8*line_index, flatten(t));
-
+					// Assign corresponding color of the vertex
 					gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer);
 					cl = vec4(colors[color_index]);
 					gl.bufferSubData(gl.ARRAY_BUFFER, 16*line_index, flatten(cl));
-					line_vertext_list.push([w, primitive_type, line_index]);
+					// Track the information of the vertex for future process
+					line_vertext_list.push([w, primitive_type, line_index, colors[color_index]]);
 					line_vertext_count++;
+					// Two vertex are required to draw a line that is why track the drawable lines
 					if(line_vertext_count == 2){
 						line_vertext_count = 0;
 						vertices_list.push(line_vertext_list);
@@ -211,15 +196,18 @@ window.onload = function init() {
 					}
 					line_index++;
 					break;
+				// Trinangle type primitives
 				case 1:
+					// Add vertex to the buffer sub data
 					gl.bufferSubData(gl.ARRAY_BUFFER, 8*(triangle_index + triangle_start_pos), flatten(t));
-
+					// Assign corresponding color of the vertex
 					gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer);
 					cl = vec4(colors[color_index]);
 					gl.bufferSubData(gl.ARRAY_BUFFER, 16*(triangle_index + triangle_start_pos), flatten(cl));
-					
-					triangle_vertext_list.push([w, primitive_type, (triangle_index + triangle_start_pos)]);
+					// Track the information of the vertex for future process
+					triangle_vertext_list.push([w, primitive_type, (triangle_index + triangle_start_pos), colors[color_index]]);
 					triangle_vertext_count++;
+					// Three vertex are required to draw a triangle that is why track the drawable triangles
 					if(triangle_vertext_count == 3){
 						triangle_vertext_count = 0;
 						vertices_list.push(triangle_vertext_list);
@@ -252,18 +240,22 @@ window.onload = function init() {
 		var choice = event.target.value;
 		color_index = choice;
 	};
+	// Draw primitives
 	document.getElementById("draw_primitives" ).onclick = function(event) {
 		draw = true;
 		pick = false;
 		object_selected = false;
 	};
+	// Pick the primitives
 	document.getElementById("pick_primitives" ).onclick = function(event) {
 		draw = false;
 		pick = true;
 	};
+	// Rotate to the left
 	document.getElementById("rotate_left" ).onclick = function(event) {
 
 		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		// Need to translate the selected object to the origin
 		for(var i=1; i<selected_obj.length; ++i){
 			if(selected_obj[i][0][0]> max_x){
 				max_x = selected_obj[i][0][0];
@@ -285,10 +277,13 @@ window.onload = function init() {
 		var c = Math.cos( -0.01 );
 
 		for(var i=0; i<selected_obj.length; ++i){
+			// Translate to the origin
 			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
 			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+			// Apply left rotation
 			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
 			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
+			// Return to the actual location
 			selected_obj[i][0][0] = r_x + translate_x_by;
 			selected_obj[i][0][1] = r_y + translate_y_by;
 			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
@@ -296,9 +291,12 @@ window.onload = function init() {
 			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
 		}
 	};
+	
+	// Rotate to the right
 	document.getElementById("rotate_right" ).onclick = function(event) {
 		
 		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		// Need to translate the selected object to the origin
 		for(var i=1; i<selected_obj.length; ++i){
 			if(selected_obj[i][0][0]> max_x){
 				max_x = selected_obj[i][0][0];
@@ -319,10 +317,13 @@ window.onload = function init() {
 		var c = Math.cos( 0.01 );
 
 		for(var i=0; i<selected_obj.length; ++i){
+			// Translate to the origin
 			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
 			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+			// Apply right rotation
 			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
 			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
+			// Return to the actual location
 			selected_obj[i][0][0] = r_x + translate_x_by;
 			selected_obj[i][0][1] = r_y + translate_y_by;
 			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
@@ -330,8 +331,10 @@ window.onload = function init() {
 			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
 		}
 	};
+	// Scaling the selecting object
 	document.getElementById("btn_scale").onclick = function() {
 		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+		// Need to translate the selected object to the origin 
 		for(var i=1; i<selected_obj.length; ++i){
 			if(selected_obj[i][0][0]> max_x){
 				max_x = selected_obj[i][0][0];
@@ -351,12 +354,13 @@ window.onload = function init() {
 
         	var scale = document.getElementById("in_scale" ).value;
 		for(var i=0; i<selected_obj.length; ++i){
+			// Translate to the origin
 			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
 			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
-
+			// Apply Scaling
 			selected_obj[i][0][0] *= scale;	
 			selected_obj[i][0][1] *= scale;	
-			
+			// Return to the actual location
 			selected_obj[i][0][0] = selected_obj[i][0][0] + translate_x_by;
 			selected_obj[i][0][1] = selected_obj[i][0][1] + translate_y_by;
 
