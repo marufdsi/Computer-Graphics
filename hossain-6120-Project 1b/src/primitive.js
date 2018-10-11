@@ -9,7 +9,9 @@ var object_selected = false;
 var selected_obj = 0;
 // Track object index
 var selected_obj_index = 0;
+
 var cBuffer;
+var vBuffer;
 
 // Track mouse dragging
 var clicked = false;
@@ -79,7 +81,7 @@ window.onload = function init() {
     
 	initializeWorldCoordinate();
 	
-	var vBuffer = gl.createBuffer();
+	vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, 8*maxNumVertices, gl.STATIC_DRAW);
 	
@@ -253,117 +255,29 @@ window.onload = function init() {
 	};
 	// Rotate to the left
 	document.getElementById("rotate_left" ).onclick = function(event) {
-
-		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
-		// Need to translate the selected object to the origin
-		for(var i=1; i<selected_obj.length; ++i){
-			if(selected_obj[i][0][0]> max_x){
-				max_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][0]< min_x){
-				min_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][1]> max_y){
-				max_y = selected_obj[i][0][1];
-			}
-			if(selected_obj[i][0][1] < min_y){
-				min_y = selected_obj[i][0][1];
-			}
-		}	
-		var translate_x_by = (max_x + min_x)/2;	
-		var translate_y_by = (max_y + min_y)/2;
-
-		var s = Math.sin( -0.01 );
-		var c = Math.cos( -0.01 );
-
-		for(var i=0; i<selected_obj.length; ++i){
-			// Translate to the origin
-			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
-			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
-			// Apply left rotation
-			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
-			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
-			// Return to the actual location
-			selected_obj[i][0][0] = r_x + translate_x_by;
-			selected_obj[i][0][1] = r_y + translate_y_by;
-			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
-			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
-		}
+		rotate(-0.1);
 	};
 	
 	// Rotate to the right
 	document.getElementById("rotate_right" ).onclick = function(event) {
-		
-		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
-		// Need to translate the selected object to the origin
-		for(var i=1; i<selected_obj.length; ++i){
-			if(selected_obj[i][0][0]> max_x){
-				max_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][0]< min_x){
-				min_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][1]> max_y){
-				max_y = selected_obj[i][0][1];
-			}
-			if(selected_obj[i][0][1] < min_y){
-				min_y = selected_obj[i][0][1];
-			}
-		}	
-		var translate_x_by = (max_x + min_x)/2;	
-		var translate_y_by = (max_y + min_y)/2;
-		var s = Math.sin( 0.01 );
-		var c = Math.cos( 0.01 );
-
-		for(var i=0; i<selected_obj.length; ++i){
-			// Translate to the origin
-			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
-			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
-			// Apply right rotation
-			var r_x = -s * selected_obj[i][0][0] + c * selected_obj[i][0][1];	
-			var r_y = s * selected_obj[i][0][1] + c * selected_obj[i][0][0];
-			// Return to the actual location
-			selected_obj[i][0][0] = r_x + translate_x_by;
-			selected_obj[i][0][1] = r_y + translate_y_by;
-			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
-			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
-		}
+		rotate(0.1);
 	};
 	// Scaling the selecting object
 	document.getElementById("btn_scale").onclick = function() {
-		var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
-		// Need to translate the selected object to the origin 
-		for(var i=1; i<selected_obj.length; ++i){
-			if(selected_obj[i][0][0]> max_x){
-				max_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][0]< min_x){
-				min_x = selected_obj[i][0][0];
-			}
-			if(selected_obj[i][0][1]> max_y){
-				max_y = selected_obj[i][0][1];
-			}
-			if(selected_obj[i][0][1] < min_y){
-				min_y = selected_obj[i][0][1];
-			}
-		}	
-		var translate_x_by = (max_x + min_x)/2;	
-		var translate_y_by = (max_y + min_y)/2;
-
-        	var scale = document.getElementById("in_scale" ).value;
+		// Get distance from origin that we need to translate
+		var translate_by = get_distance_from_origin();
+		
+		var scale = document.getElementById("in_scale" ).value;
 		for(var i=0; i<selected_obj.length; ++i){
 			// Translate to the origin
-			selected_obj[i][0][0] = selected_obj[i][0][0] - translate_x_by;
-			selected_obj[i][0][1] = selected_obj[i][0][1] - translate_y_by;
+			var w = translate(selected_obj[i][0], -translate_by[0], -translate_by[1]);
 			// Apply Scaling
-			selected_obj[i][0][0] *= scale;	
-			selected_obj[i][0][1] *= scale;	
+			selected_obj[i][0][0] = w[0] * scale;	
+			selected_obj[i][0][1] = w[1] * scale;	
 			// Return to the actual location
-			selected_obj[i][0][0] = selected_obj[i][0][0] + translate_x_by;
-			selected_obj[i][0][1] = selected_obj[i][0][1] + translate_y_by;
+			selected_obj[i][0] = translate(selected_obj[i][0], translate_by[0], translate_by[1]);
 
+			// convert coordinate from world to NDC
 			var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
 			gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
 			gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
@@ -408,6 +322,48 @@ window.onload = function init() {
 		}
 	};
     render();
+}
+
+function rotate(theta){
+	// Get distance from origin that we need to translate
+	var translate_by = get_distance_from_origin();
+	var s = Math.sin( theta );
+	var c = Math.cos( theta);
+	for(var i=0; i<selected_obj.length; ++i){
+		// Translate to the origin
+		var w = translate(selected_obj[i][0], -translate_by[0], -translate_by[1]);
+		// Apply rotation
+		var r_x = s * w[1] + c * w[0];	
+		var r_y = -s * w[0] + c * w[1];
+		// Return to the actual location
+		selected_obj[i][0] = translate(vec2(r_x, r_y), translate_by[0], translate_by[1]);
+		// convert coordinate from world to NDC
+		var result = worldToNDC(selected_obj[i][0][0], selected_obj[i][0][1]);
+		gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 8*selected_obj[i][2], flatten(result));
+	}
+}
+function get_distance_from_origin(){
+	var max_x = selected_obj[0][0][0], min_x = selected_obj[0][0][0], max_y = selected_obj[0][0][1], min_y = selected_obj[0][0][1];
+	// Need to translate the selected object to the origin
+	for(var i=1; i<selected_obj.length; ++i){
+		if(selected_obj[i][0][0]> max_x){
+			max_x = selected_obj[i][0][0];
+		}
+		if(selected_obj[i][0][0]< min_x){
+			min_x = selected_obj[i][0][0];
+		}
+		if(selected_obj[i][0][1]> max_y){
+			max_y = selected_obj[i][0][1];
+		}
+		if(selected_obj[i][0][1] < min_y){
+			min_y = selected_obj[i][0][1];
+		}
+	}	
+	return vec2((max_x + min_x)/2, (max_y + min_y)/2);
+}
+function translate(w, translate_by_x, translate_by_y){
+	return vec2((w[0] + translate_by_x), (w[1] + translate_by_y));
 }
 
 // Initialize world coordinates
