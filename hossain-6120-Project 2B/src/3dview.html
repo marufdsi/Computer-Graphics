@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <html>
-
+<head>
+	<style>
+		table {
+  background: #444;
+  vertical-align: top;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  padding-left: .6em;
+  padding-right: 1em;
+  border: 2px solid #333;
+  border-spacing: 1px;
+}
+ 
+th {
+  color: white;
+  background: #3a3a3a;
+  margin-bottom: 8px;
+}
+ 
+td {
+  padding: 5px;
+  width: 3em;
+  text-align: right;
+  color: white;
+}
+	</style>
+</head>
 <p> </p>
 <button id = "Button1">Increase Z</button>
 <button id = "Button2">Decrease Z</button>
@@ -26,6 +52,7 @@ uniform mat4 projection;
 
 void main() 
 {
+    //gl_Position = projection*vPosition;
     gl_Position = projection*modelView*vPosition;
     fColor = vColor;
 } 
@@ -47,22 +74,34 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
-<script type="text/javascript" src="3dview.js"></script>
+<script type="text/javascript" src="multi_view.js"></script>
 
 <body>
-At X Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="at_x">
-At Y Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="at_y">
-At Z Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="at_z">
+Eye X Axis<input type="range" min="-4" max="4" value="0" step="0.01" class="slider" id="eye_x">
+Eye Y Axis<input type="range" min="-4" max="4" value="0" step="0.01" class="slider" id="eye_y">
+Eye Z Axis<input type="range" min="-10" max="10" value="-3" step="0.01" class="slider" id="eye_z">
 <br>
 <br>
-Up X Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="up_x">
-Up Y Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="up_y">
-Up Z Axis<input type="range" min="-500" max="500" value="0" step="2" class="slider" id="up_z">
+At X Axis<input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="at_x">
+At Y Axis<input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="at_y">
+At Z Axis<input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="at_z">
 <br>
 <br>
-<canvas id="gl-canvas" width="512" height="512">
-Oops ... your browser doesn't support the HTML5 canvas element
-</canvas>
-
+Up X Axis<input type="range" min="-5" max="5" value="0" step="0.01" class="slider" id="up_x">
+Up Y Axis<input type="range" min="-5" max="5" value="1" step="0.01" class="slider" id="up_y">
+Up Z Axis<input type="range" min="-5" max="5" value="0" step="0.01" class="slider" id="up_z">
+<br>
+<br>
+Near: -4<input type="range" min="-4" max="3" value="-1" step="0.01" class="slider" id="near">3
+Far: 1<input type="range" min="-1" max="15" value="1" step="0.01" class="slider" id="far">15
+<br>
+<br>
+	<div style="float:left; width:850px">
+		<canvas id="gl-canvas" width="800" height="400">
+		Oops ... your browser doesn't support the HTML5 canvas element
+		</canvas>
+	</div>
+	<div  style="float:right; width:300px" id="matrices">
+	</div>
 </body>
 </html>

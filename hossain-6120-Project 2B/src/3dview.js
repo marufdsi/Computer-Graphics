@@ -31,19 +31,19 @@ var vertexColors = [
 ];
 
 
-var near = 0.3;
-var far = 3.0;
+var near = -1;
+var far = 1.0;
 var radius = 4.0;
 var theta  = 0.0;
 var phi    = 0.0;
 var dr = 5.0 * Math.PI/180.0;
 
-var  fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
+var  fovy = 22.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect;       // Viewport aspect ratio
 
 var mvMatrix, pMatrix;
 var modelView, projection;
-var eye;
+var eye = vec3(0.0, 0.0, 4.0);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
@@ -128,37 +128,68 @@ window.onload = function init() {
     document.getElementById("Button7").onclick = function(){phi += dr;};
     document.getElementById("Button8").onclick = function(){phi -= dr;};
 	
-	document.getElementById("at_x").onchange = function(event){
-		at[0] = -1*((2*(parseInt(document.getElementById("at_x").value)+500)/1000)-1);
+	document.getElementById("eye_x").oninput = function(event){
+		eye[0] = parseFloat(document.getElementById("eye_x").value);
 	};
-	document.getElementById("at_y").onchange = function(event){
-		at[1] = -1*((2*(parseInt(document.getElementById("at_y").value)+500)/1000)-1);
+	document.getElementById("eye_y").oninput = function(event){
+		eye[1] = parseFloat(document.getElementById("eye_y").value);
 	};
-	document.getElementById("at_z").onchange = function(event){
-		at[2] = -1*((2*(parseInt(document.getElementById("at_z").value)+500)/1000)-1);
+	document.getElementById("eye_z").oninput = function(event){
+		eye[2] = parseFloat(document.getElementById("eye_z").value);
 	};
 	
-	document.getElementById("up_x").onchange = function(event){
-		up = vec3(-1*((2*(parseInt(document.getElementById("up_x").value)+500)/1000)-1), up[1], up[2]);
+	document.getElementById("at_x").oninput = function(event){
+		at[0] = -1*parseFloat(document.getElementById("at_x").value);
 	};
-	document.getElementById("up_y").onchange = function(event){
-		up = vec3(up[0], -1*((2*(parseInt(document.getElementById("up_y").value)+500)/1000)-1), up[2]);
+	document.getElementById("at_y").oninput = function(event){
+		at[1] = -1*parseFloat(document.getElementById("at_y").value);
 	};
-	document.getElementById("up_z").onchange = function(event){
-		up = vec3(up[0], up[1], -1*((2*(parseInt(document.getElementById("up_z").value)+500)/1000)-1));
+	document.getElementById("at_z").oninput = function(event){
+		at[2] = -1*parseFloat(document.getElementById("at_z").value);
+	};
+	
+	document.getElementById("up_x").oninput = function(event){
+		up[0] = -1*parseFloat(document.getElementById("up_x").value);
+	};
+	document.getElementById("up_y").oninput = function(event){
+		up[1] = -1*parseFloat(document.getElementById("up_y").value);
+	};
+	document.getElementById("up_z").oninput = function(event){
+		up[2] = -1*parseFloat(document.getElementById("up_z").value);
 	};
        
     render(); 
 }
 
+var check_valid_up = function(){
+	if(up[0] == 0 && up[1] == 0 && up[2] == 0){
+		// reset the up value, because all zero is not a valid up direction
+		up = vec3(0, 1, 0);
+	}
+}
+
+function myPerspective( fovy, aspect, near, far )
+{
+    var f = 1.0 / Math.tan(radians(fovy));
+    var d = far - near;
+
+    var result = mat4();
+    result[0][0] = f / aspect;
+    result[1][1] = f;
+    result[2][2] = -1*(near + far) / d;
+    result[2][3] = -2 * near * far / d;
+    result[3][2] = -1;
+    result[3][3] = 0.0;
+
+    return result;
+}
 
 var render = function(){
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
-    eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
-        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
-    mvMatrix = lookAt(eye, at , up);
-    pMatrix = perspective(fovy, aspect, near, far);
+	check_valid_up();
+    mvMatrix = lookAt(eye, at , subtract(up, eye));
+    pMatrix = myPerspective(fovy, aspect, near, far);
 //console.log("camera xform: " + mvMatrix);
 //console.log("perspective xform: " + pMatrix);
 
